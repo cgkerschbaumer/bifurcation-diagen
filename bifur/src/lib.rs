@@ -16,11 +16,13 @@ pub trait Histogram<I: Clone, X> {
     fn bucket_index(&self, pt: &X) -> Option<I>;
 
     fn increment(&mut self, idx: I);
+    fn add_sample(&mut self, pt: &X);
 
     fn set(&mut self, idx: I, count: usize);
     fn get(&self, idx: I, format: HistFormat) -> Option<HistValue>;
 }
 
+#[derive(Clone)]
 pub struct HistogramR1 {
     lower_bound: f64,
     upper_bound: f64,
@@ -42,6 +44,31 @@ impl HistogramR1 {
             counts: vec![0; sub_divisions],
             max_value: 0,
         }
+    }
+
+    fn get_normalized(&self, idx: usize) -> f64 {
+        (self.counts[idx] as f64) / (self.max_value as f64)
+    }
+}
+
+impl MetricSpace for HistogramR1 {
+    fn distance(&self, other: &Self) -> f64 {
+        let mut sup_norm = 0f64;
+
+        assert!(
+            self.counts.len() == other.counts.len(),
+            "R1 Histogram sub-divisions are incompatible."
+        );
+
+        for i in 0..self.counts.len() {
+            let delta = (self.get_normalized(i) - other.get_normalized(i)).abs();
+
+            if delta > sup_norm {
+                sup_norm = delta;
+            }
+        }
+
+        sup_norm
     }
 }
 
@@ -65,6 +92,12 @@ impl Histogram<usize, f64> for HistogramR1 {
         }
     }
 
+    fn add_sample(&mut self, pt: &f64) {
+        if let Some(idx) = self.bucket_index(&pt) {
+            self.increment(idx);
+        }
+    }
+
     fn set(&mut self, idx: usize, count: usize) {
         if idx < self.counts.len() {
             if count > self.max_value {
@@ -82,9 +115,7 @@ impl Histogram<usize, f64> for HistogramR1 {
 
         match format {
             HistFormat::Count => Some(HistValue::Count(self.counts[idx])),
-            HistFormat::DivideByMax => Some(HistValue::NormalizedValue(
-                (self.counts[idx] as f64) / (self.max_value as f64),
-            )),
+            HistFormat::DivideByMax => Some(HistValue::NormalizedValue(self.get_normalized(idx))),
         }
     }
 }
@@ -112,6 +143,41 @@ impl<X: Clone + PartialOrd> Orbit<X> {
         orbit
     }
 
+    pub fn trace_with_early_exit<I: Clone, H, F>(
+        hist: &mut H,
+        func: F,
+        initial_point: X,
+        iteration_limit: usize,
+        early_exit_eps: f64,
+        early_exit_batch: usize,
+    ) -> Orbit<X>
+    where
+        F: Fn(X) -> X,
+        X: Copy,
+        H: Histogram<I, X> + Clone + MetricSpace,
+    {
+        let mut xn = initial_point;
+        let mut orbit = Orbit {
+            data: vec![],
+        };
+        let mut prev_hist = hist.clone();
+
+        for i in 0..iteration_limit {
+            orbit.data.push(xn);
+            hist.add_sample(&xn);
+            if i % early_exit_batch == 0 {
+                if hist.distance(&prev_hist) < early_exit_eps {
+                    return orbit;
+                }
+            }
+            prev_hist.add_sample(&initial_point);
+
+            xn = func(xn);
+        }
+
+        orbit
+    }
+
     pub fn range(&self) -> (X, X) {
         let mut lower_bound = &self.data[0];
         let mut upper_bound = &self.data[0];
@@ -131,9 +197,7 @@ impl<X: Clone + PartialOrd> Orbit<X> {
 
     pub fn update_histogram<I: Clone>(&self, hist: &mut dyn Histogram<I, X>) {
         for xn in &self.data {
-            if let Some(idx) = hist.bucket_index(xn) {
-                hist.increment(idx);
-            }
+            hist.add_sample(&xn);
         }
     }
 }
