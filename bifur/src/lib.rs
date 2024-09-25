@@ -1,5 +1,3 @@
-use anyhow::Result;
-
 pub trait MetricSpace {
     fn distance(&self, other: &Self) -> f64;
 }

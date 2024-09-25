@@ -10,7 +10,7 @@ pub fn generate(width: usize, height: usize, bifurcation_param_interval: (f64, f
         let t = (row_idx as f64) / (width as f64);
         let a = bifurcation_param_interval.0 * (1.0 - t) + bifurcation_param_interval.1 * t;
 
-        let mut hist = bifur::HistogramR1::new((0.0, 1.0), height as usize);
+        let mut hist = bifur::HistogramR1::new((0.0, 1.0), height);
 
         let samples = 1000;
         for i in 0..samples {

@@ -4,8 +4,6 @@ use std::path::PathBuf;
 mod feigenbaum;
 mod image_helpers;
 
-use image_helpers::RGBImage;
-
 #[derive(Parser, Debug)]
 enum Subcommand {
     Feigenbaum,
