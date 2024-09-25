@@ -16,6 +16,15 @@ struct FeigenbaumArgs {
 
     #[arg(long, default_value_t = 4.0f64)]
     to: f64,
+
+    #[arg(long, default_value_t = 10000usize)]
+    iter_limit: usize,
+
+    #[arg(long, default_value_t = 1e-4f64)]
+    early_exit_threshold: f64,
+
+    #[arg(long, default_value_t = 100usize)]
+    early_exit_batch: usize,
 }
 
 #[derive(Parser, Debug)]
@@ -41,8 +50,14 @@ fn main() {
 
     match args.command {
         Subcommand::Feigenbaum(sub_cmd_args) => {
-            let img =
-                feigenbaum::generate(args.width, args.height, (sub_cmd_args.from, sub_cmd_args.to));
+            let img = feigenbaum::generate(
+                args.width,
+                args.height,
+                (sub_cmd_args.from, sub_cmd_args.to),
+                sub_cmd_args.iter_limit,
+                sub_cmd_args.early_exit_threshold,
+                sub_cmd_args.early_exit_batch,
+            );
 
             if let Err(e) = img.save(args.output_file) {
                 eprintln!("Failed to save image: {}", e)
