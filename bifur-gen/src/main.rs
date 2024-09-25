@@ -6,7 +6,16 @@ mod image_helpers;
 
 #[derive(Parser, Debug)]
 enum Subcommand {
-    Feigenbaum,
+    Feigenbaum(FeigenbaumArgs),
+}
+
+#[derive(Parser, Debug)]
+struct FeigenbaumArgs {
+    #[arg(long, default_value_t = 0.0f64)]
+    from: f64,
+
+    #[arg(long, default_value_t = 4.0f64)]
+    to: f64,
 }
 
 #[derive(Parser, Debug)]
@@ -31,8 +40,9 @@ fn main() {
     assert!(args.height > 0);
 
     match args.command {
-        Subcommand::Feigenbaum => {
-            let img = feigenbaum::generate(args.width, args.height, (0.0, 4.0));
+        Subcommand::Feigenbaum(sub_cmd_args) => {
+            let img =
+                feigenbaum::generate(args.width, args.height, (sub_cmd_args.from, sub_cmd_args.to));
 
             if let Err(e) = img.save(args.output_file) {
                 eprintln!("Failed to save image: {}", e)

@@ -8,3 +8,4 @@ clap = { version = "4.5.18", features = ["derive"] }
 image = "0.25.2"
 bifur = {path = "../bifur"}
 indicatif = "0.17.8"
+rayon = "1.10.0"
