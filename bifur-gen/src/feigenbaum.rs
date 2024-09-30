@@ -43,13 +43,12 @@ pub fn generate(
             }
 
             for (y, pixel) in row.enumerate() {
-                let y = height - 1 - y as usize;
-                match hist.get(y, bifur::HistFormat::DivideByMax) {
-                    Some(bifur::HistValue::NormalizedValue(val)) => {
-                        let shade = (255.0 * (1.0 - val)) as u8;
-                        *pixel = image::Rgb([shade, shade, shade])
-                    }
-                    _ => {}
+                let y = height - 1 - y;
+                if let Some(bifur::HistValue::NormalizedValue(val)) =
+                    hist.get(y, bifur::HistFormat::DivideByMax)
+                {
+                    let shade = (255.0 * (1.0 - val)) as u8;
+                    *pixel = image::Rgb([shade, shade, shade])
                 }
             }
 

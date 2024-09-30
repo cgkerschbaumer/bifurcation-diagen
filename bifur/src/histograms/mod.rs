@@ -71,7 +71,7 @@ impl Histogram<usize, f64> for HistogramR1 {
     }
 
     fn add_sample(&mut self, pt: &f64) {
-        if let Some(idx) = self.bucket_index(&pt) {
+        if let Some(idx) = self.bucket_index(pt) {
             self.increment(idx);
         }
     }

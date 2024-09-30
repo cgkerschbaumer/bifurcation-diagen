@@ -1,3 +1,4 @@
+pub mod fractals;
 pub mod histograms;
 
 pub trait MetricSpace {
@@ -61,18 +62,14 @@ impl<X: Clone + PartialOrd> Orbit<X> {
         H: Histogram<I, X> + Clone + MetricSpace,
     {
         let mut xn = initial_point;
-        let mut orbit = Orbit {
-            data: vec![],
-        };
+        let mut orbit = Orbit { data: vec![] };
         let mut prev_hist = hist.clone();
 
         for i in 0..iteration_limit {
             orbit.data.push(xn);
             hist.add_sample(&xn);
-            if i % early_exit_batch == 0 {
-                if hist.distance(&prev_hist) < early_exit_eps {
-                    return orbit;
-                }
+            if i % early_exit_batch == 0 && hist.distance(&prev_hist) < early_exit_eps {
+                return orbit;
             }
             prev_hist.add_sample(&initial_point);
 
@@ -101,7 +98,7 @@ impl<X: Clone + PartialOrd> Orbit<X> {
 
     pub fn update_histogram<I: Clone>(&self, hist: &mut dyn Histogram<I, X>) {
         for xn in &self.data {
-            hist.add_sample(&xn);
+            hist.add_sample(xn);
         }
     }
 }
