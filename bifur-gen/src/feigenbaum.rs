@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use bifur::Histogram;
+use bifur::{histograms::HistogramR1, Histogram};
 use indicatif::ProgressBar;
 use rayon::prelude::*;
 
@@ -26,7 +26,7 @@ pub fn generate(
             let t = (row_idx as f64) / (width as f64);
             let a = bifurcation_param_interval.0 * (1.0 - t) + bifurcation_param_interval.1 * t;
 
-            let mut hist = bifur::HistogramR1::new((0.0, 1.0), height);
+            let mut hist = HistogramR1::new((0.0, 1.0), height);
 
             let samples = 1000;
             for i in 0..samples {
