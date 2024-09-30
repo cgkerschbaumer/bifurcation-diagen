@@ -44,7 +44,7 @@ struct MandelbrotArgs {
     #[arg(long, default_value_t = 1.5f64)]
     to_y: f64,
 
-    #[arg(long, default_value_t = 20000usize)]
+    #[arg(long, default_value_t = 1000usize)]
     iter_limit: usize,
 }
 
